@@ -1,2 +1,2 @@
 ---
-# vars file for docker-systemd-traefik-service
+service_startup_time: 2 # minutes

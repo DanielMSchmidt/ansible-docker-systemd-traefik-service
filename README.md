@@ -34,7 +34,10 @@ Systemd managed docker containers, exposed by traefik, enabled for zero-downtime
 
 The same as [mhutter.docker-systemd-service](https://github.com/mhutter/ansible-docker-systemd-service), plus the listed extra ones:
 
-- `traefik_router_labels`: List of labels being prefixed for traefik with the `container_name`. E.g. `entrypoints=websecure` becomes the label `traefik.http.routers.myapp.entrypoints=websecure` (or during zero-downtime deployment `traefik.http.routers.idadwh-tmp.entrypoints=websecure`)
+- `traefik_router_labels`: List of labels being prefixed for traefik with the `container_name`. E.g. `entrypoints=websecure` becomes the label `traefik.http.routers.myapp.entrypoints=websecure` (or during zero-downtime deployment `traefik.http.routers.myapp-tmp.entrypoints=websecure`)
+- `same_tag`: Boolean, ensures deploying works with the same tag (by deleting the old one)
+- `rolling_update`: Boolean, creates a temporary systemd service for a docker container that takes the traefik while the original one is updated
+- `service_startup_time`: Default 2, time in minutes until rolling update is resumed and previous service is taken down
 
 ## License
 

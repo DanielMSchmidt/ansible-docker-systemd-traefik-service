@@ -1,2 +1,76 @@
 ---
-# tasks file for docker-systemd-traefik-service
+- name: Compile list of traefik container labels
+  set_fact:
+    traefik_container_labels: "{{ result }}"
+  vars:
+    prefix: "traefik.http.{{ container_name }}."
+    a_list: "{{ traefik_router_labels }}"
+    result: "{{ [prefix] | product(a_list) | map('join') | list }}"
+
+- name: Ensure normal application exists
+  include_role:
+    name: mhutter.docker-systemd-service
+  vars:
+    container_labels: "{{ container_labels | default([]) }} + {{ traefik_container_labels }}"
+
+- name: Remove image
+  docker_image:
+    name: "{{ container_image }}"
+    state: absent
+    force_absent: yes
+  when: same_tag
+
+- name: Load new image
+  docker_image:
+    name: "{{ container_image }}"
+    state: present
+  when: same_tag
+
+- name: Compile list of traefik container labels
+  set_fact:
+    traefik_tmp_container_labels: "{{ result }}"
+  vars:
+    prefix: "traefik.http.{{ container_name }}-tmp."
+    a_list: "{{ traefik_router_labels }}"
+    result: "{{ [prefix] | product(a_list) | map('join') | list }}"
+  when: rolling_update
+
+- name: create tmp application exists
+  include_role:
+    name: mhutter.docker-systemd-service
+  vars:
+    name: "{{ name }}-tmp"
+    container_name: "{{ container_name }}-tmp"
+    container_labels: "{{ container_labels | default([]) }} + {{ traefik_tmp_container_labels }}"
+  when: rolling_update
+
+- name: wait for service to come up
+  pause:
+    minutes: "{{ service_startup_time }}"
+  when: rolling_update
+
+- name: Restart normal systemd service
+  systemd:
+    state: restarted
+    name: "{{ name }}"
+  when: rolling_update
+
+- name: wait for service to come up
+  pause:
+    minutes: "{{ service_startup_time }}"
+  when: rolling_update
+
+- name: Stop tmp systemd service
+  systemd:
+    state: stopped
+    name: "{{ name }}-tmp"
+  when: rolling_update
+
+- name: Remove systemd service
+  file:
+    path: "/etc/systemd/system/{{ name }}-tmp_container.service"
+    state: absent
+
+- name: Reload systemd deamon
+  systemd:
+    daemon_reload: yes

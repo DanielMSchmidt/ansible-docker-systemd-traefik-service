@@ -1,5 +1,25 @@
 ---
 - hosts: localhost
   remote_user: root
-  roles:
-    - ansible-docker-systemd-traefik-service
+  tasks:
+    - name: Installation
+      include_role:
+        name: ansible-docker-systemd-traefik-service
+      vars:
+        container_name: myapp
+        container_image: myapp:latest
+        container_links: ["mysql"]
+        container_volumes:
+          - "/data/uploads:/data/uploads"
+        container_ports:
+          - "3000:3000"
+        container_env:
+          MYSQL_ROOT_PASSWORD: "{{ mysql_root_pw }}"
+        container_labels:
+          - "environment=development"
+        traefik_router_labels:
+          - entrypoints=websecure
+          - tls=true
+          - tls.certresolver=myapp
+          - rule="Host(`github.com`) && PathPrefix(`DanielMSchmidt`)"
+          - middlewares=myapp-stripprefix@docker
