@@ -1,38 +1,41 @@
-Role Name
-=========
+# docker-systemd-traefik-service
 
-A brief description of the role goes here.
+Systemd managed docker containers, exposed by traefik, enabled for zero-downtime deployments.
 
-Requirements
-------------
+```yaml
+- name: Start WebApp
+  include_role:
+    name: docker-systemd-traefik-service
+  vars:
+    container_name: myapp
+    container_image: myapp:latest
+    container_links: ["mysql"]
+    container_volumes:
+      - "/data/uploads:/data/uploads"
+    container_ports:
+      - "3000:3000"
+    container_env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_pw }}"
+    container_labels:
+      - traefik.http.middlewares.myapp-stripprefix.stripprefix.prefixes="{{ subpath }}"
+    traefik_router_labels:
+      - entrypoints=websecure
+      - tls=true
+      - tls.certresolver=myapp
+      - rule="Host(`{{ host }}`) && PathPrefix(`{{ subpath }}`)"
+      - middlewares=myapp-stripprefix@docker
+```
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Requirements
 
-Role Variables
---------------
+[mhutter.docker-systemd-service](https://github.com/mhutter/ansible-docker-systemd-service) must be installed.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Role Variables
 
-Dependencies
-------------
+The same as [mhutter.docker-systemd-service](https://github.com/mhutter/ansible-docker-systemd-service), plus the listed extra ones:
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- `traefik_router_labels`: List of labels being prefixed for traefik with the `container_name`. E.g. `entrypoints=websecure` becomes the label `traefik.http.routers.myapp.entrypoints=websecure` (or during zero-downtime deployment `traefik.http.routers.idadwh-tmp.entrypoints=websecure`)
 
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
+## License
 
 BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
