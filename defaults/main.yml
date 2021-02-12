@@ -1,2 +1,3 @@
 ---
 # defaults file for docker-systemd-traefik-service
+application_container_labels: []
