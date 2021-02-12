@@ -18,13 +18,11 @@
     name: "{{ container_image }}"
     state: absent
     force_absent: yes
-  when: same_tag
 
 - name: Load new image
   docker_image:
     name: "{{ container_image }}"
     state: present
-  when: same_tag
 
 - name: Compile list of traefik container labels
   set_fact:
