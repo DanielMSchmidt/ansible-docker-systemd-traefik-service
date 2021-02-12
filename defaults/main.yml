@@ -1,3 +1,6 @@
 ---
 # defaults file for docker-systemd-traefik-service
 application_container_labels: []
+service_startup_time: 2
+same_tag: true
+rolling_update: true
