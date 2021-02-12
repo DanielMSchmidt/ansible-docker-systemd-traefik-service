@@ -18,11 +18,13 @@
     name: "{{ container_image }}"
     state: absent
     force_absent: yes
+  when: (force_install|default(false)|bool == true)
 
 - name: Load new image
   docker_image:
     name: "{{ container_image }}"
     state: present
+  when: (force_install|default(false)|bool == true)
 
 - name: Compile list of traefik container labels
   set_fact:
@@ -31,7 +33,7 @@
     prefix: "traefik.http.{{ container_name }}-tmp."
     a_list: "{{ traefik_router_labels }}"
     result: "{{ [prefix] | product(a_list) | map('join') | list }}"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: create tmp application exists
   include_role:
@@ -40,29 +42,29 @@
     name: "{{ name }}-tmp"
     container_name: "{{ container_name }}-tmp"
     container_labels: "{{ container_labels | default([]) }} + {{ traefik_tmp_container_labels }}"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: wait for service to come up
   pause:
     minutes: "{{ service_startup_time }}"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: Restart normal systemd service
   systemd:
     state: restarted
     name: "{{ name }}"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: wait for service to come up
   pause:
     minutes: "{{ service_startup_time }}"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: Stop tmp systemd service
   systemd:
     state: stopped
     name: "{{ name }}-tmp"
-  when: rolling_update
+  when: (rolling_update|default(false)|bool == true)
 
 - name: Remove systemd service
   file:
