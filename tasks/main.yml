@@ -7,6 +7,11 @@
     a_list: "{{ traefik_router_labels }}"
     result: "{{ [prefix] | product(a_list) | map('join') | list }}"
 
+- name: Set facts for tmp container and systemd name
+  set_fact:
+    tmp_name: "{{ name }}-tmp"
+    tmp_container_name: "{{ container_name }}-tmp"
+
 - name: Ensure normal application exists
   include_role:
     name: mhutter.docker-systemd-service
@@ -35,13 +40,13 @@
     result: "{{ [prefix] | product(a_list) | map('join') | list }}"
   when: (rolling_update|default(false)|bool == true)
 
-- name: create tmp application exists
+- name: create tmp application
   include_role:
     name: mhutter.docker-systemd-service
   vars:
-    name: "{{ name }}-tmp"
-    container_name: "{{ container_name }}-tmp"
-    container_labels: "{{ container_labels | default([]) }} + {{ traefik_tmp_container_labels }}"
+    name: "{{ tmp_name }}"
+    container_name: "{{ tmp_container_name }}"
+    container_labels: "{{ all_container_labels }}"
   when: (rolling_update|default(false)|bool == true)
 
 - name: wait for service to come up
@@ -63,12 +68,12 @@
 - name: Stop tmp systemd service
   systemd:
     state: stopped
-    name: "{{ name }}-tmp"
+    name: "{{ tmp_name }}"
   when: (rolling_update|default(false)|bool == true)
 
 - name: Remove systemd service
   file:
-    path: "/etc/systemd/system/{{ name }}-tmp_container.service"
+    path: "/etc/systemd/system/{{ tmp_name }}_container.service"
     state: absent
 
 - name: Reload systemd deamon
