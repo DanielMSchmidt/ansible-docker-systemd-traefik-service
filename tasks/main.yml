@@ -3,7 +3,7 @@
   set_fact:
     all_container_labels: "{{ container_labels }} + {{ result }}"
   vars:
-    prefix: "traefik.http.{{ container_name }}."
+    prefix: "traefik.http.routers.{{ container_name }}."
     a_list: "{{ traefik_router_labels }}"
     result: "{{ [prefix] | product(a_list) | map('join') | list }}"
 
