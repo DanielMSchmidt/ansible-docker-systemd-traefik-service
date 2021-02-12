@@ -3,14 +3,14 @@
   set_fact:
     all_container_labels: "{{ container_labels }} + {{ result }}"
   vars:
-    prefix: "traefik.http.routers.{{ container_name }}."
+    prefix: "traefik.http.routers.{{ name }}."
     a_list: "{{ traefik_router_labels }}"
     result: "{{ [prefix] | product(a_list) | map('join') | list }}"
 
 - name: Set facts for tmp container and systemd name
   set_fact:
     tmp_name: "{{ name }}-tmp"
-    tmp_container_name: "{{ container_name }}-tmp"
+    tmp_container_name: "{{ name }}-tmp_container"
 
 - name: Ensure normal application exists
   include_role:
@@ -73,7 +73,7 @@
 
 - name: Remove systemd service
   file:
-    path: "/etc/systemd/system/{{ tmp_name }}_container.service"
+    path: "/etc/systemd/system/{{ tmp_container_name }}.service"
     state: absent
 
 - name: Reload systemd deamon
