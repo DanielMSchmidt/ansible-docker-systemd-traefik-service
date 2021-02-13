@@ -2,7 +2,6 @@
 - name: Compile list of traefik container labels
   set_fact:
     all_container_labels: "{{ container_labels }} + {{ result }}"
-    normal_container_name: "{{ name }}_container"
   vars:
     prefix: "traefik.http.routers.{{ name }}."
     a_list: "{{ traefik_router_labels }}"
@@ -12,7 +11,7 @@
   include_role:
     name: mhutter.docker-systemd-service
   vars:
-    container_name: "{{ normal_container_name }}"
+    container_name: "{{ name }}"
     container_labels: "{{ all_container_labels }}"
 
 - name: Remove image
@@ -44,7 +43,7 @@
     name: mhutter.docker-systemd-service
   vars:
     name: "{{ tmp_name }}"
-    container_name: "{{ tmp_container_name }}"
+    container_name: "{{ tmp_name }}"
     container_labels: "{{ all_tmp_container_labels }}"
   when: (rolling_update|default(false)|bool == true)
 
