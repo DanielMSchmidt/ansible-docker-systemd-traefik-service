@@ -2,6 +2,7 @@
 - name: Compile list of traefik container labels
   set_fact:
     all_container_labels: "{{ container_labels }} + {{ result }}"
+    normal_container_name: "{{ name }}_container"
   vars:
     prefix: "traefik.http.routers.{{ name }}."
     a_list: "{{ traefik_router_labels }}"
@@ -55,7 +56,7 @@
 - name: Restart normal systemd service
   systemd:
     state: restarted
-    name: "{{ name }}"
+    name: "{{ normal_container_name }}"
   when: (rolling_update|default(false)|bool == true)
 
 - name: wait for service to come up
@@ -66,7 +67,7 @@
 - name: Stop tmp systemd service
   systemd:
     state: stopped
-    name: "{{ tmp_name }}"
+    name: "{{ tmp_container_name }}"
   when: (rolling_update|default(false)|bool == true)
 
 - name: Remove systemd service
